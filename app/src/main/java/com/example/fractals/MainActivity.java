@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -23,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
     Button buttonStart, buttonRun;
     CustomСanvas customСanvas;
-    public static Handler tickHandler;
+    public static Handler tickHandler, ticHandler;
     long DELAY_MILLIS = 1000;
     public long delayMillis = DELAY_MILLIS;
     public static boolean started, isRunning;
@@ -31,6 +32,19 @@ public class MainActivity extends AppCompatActivity {
     SeekBar seekBar;
     TextView tvSeekBarMonitor;
     public static int maxNum;
+    int i;
+
+    public Runnable mRunnable = new Runnable() {
+        @Override
+        public void run() {
+
+            String str = "Delay millis = "+delayMillis+"; i = "+i;
+            tvSeekBarMonitor.setText(str);
+            if (isRunning){
+                ticHandler.postDelayed(mRunnable, DELAY_MILLIS);
+            }
+        }
+    };
 
     public Runnable mTickRunnable = new Runnable() {
         @Override
@@ -108,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
             startedPoint = point;
             customСanvas.invalidate();
 
+            i++;
             if (isRunning) {
                 MainActivity.tickHandler.postDelayed(mTicRunnable, delayMillis);
             }
@@ -119,6 +134,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         buttonStart = findViewById(R.id.buttonStart);
         buttonRun = findViewById(R.id.buttonRun);
@@ -152,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         tickHandler = new Handler();
+        ticHandler = new Handler();
 
         buttonRun.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -163,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
                     buttonRun.setText("Stop");
 
                     started = false;
+                    startedPoint = null;
                     buttonStart.setText("Start");
                 }else {
                     buttonRun.setText("Run");
@@ -171,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
                 if (isRunning){
 
                     tickHandler.postDelayed(mTicRunnable, delayMillis);
+                    ticHandler.postDelayed(mRunnable, DELAY_MILLIS);
                 }
 
             }
@@ -193,6 +213,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (started){
+                    i = 0;
                     customСanvas.mainPoints.clear();
                     customСanvas.bitmap = Bitmap.createBitmap(customСanvas.getMeasuredWidth(), customСanvas.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
 
